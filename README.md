@@ -52,3 +52,5 @@ Para detalhes sobre as rotas disponíveis, parâmetros e exemplos de uso da API,
 *   **Interface do Usuário**: React 18, Vite e CSS customizado para uma experiência moderna.
 *   **Containerização**: Docker e Docker Compose.
 
+
+
