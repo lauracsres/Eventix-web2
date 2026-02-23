@@ -34,11 +34,18 @@ Certifique-se de ter o Docker e o Docker Compose devidamente configurados em sua
    docker-compose -f docker-compose-dev.yml up -d --build
    ```
 
+3. Inicie o frontend acessando o diretório
+   ````cd Codes/tickers/frontend´´´´´
+
+4. Execute o comando abaixo
+   ```` npm install
+   npm run dev´´´´
+
 ### Endereços das aplicações
 
 Após a inicialização, você poderá acessar os serviços nos seguintes endereços:
 
-*   **Interface Administrativa**: [http://localhost:5173](http://localhost:5173)
+*   **Interface Administrativa**: [http://localhost:5174](http://localhost:5173)
 *   **API Gateway**: [http://localhost:8080](http://localhost:8080)
 
 ## Documentação técnica
