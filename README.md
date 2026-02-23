@@ -35,7 +35,7 @@ Certifique-se de ter o Docker e o Docker Compose devidamente configurados em sua
    ```
 
 3. Inicie o frontend acessando o diretório
-   ````cd Codes/tickers/frontend´´´´
+   ```cd Codes/tickers/frontend´´´
 
 4. Execute o comando abaixo
    ```npm install
