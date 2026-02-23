@@ -1,0 +1,126 @@
+services:
+
+  pgsql-ticket:
+    image: postgres:17.0
+    ports:
+      - "9876:5432"
+    environment:
+      - POSTGRES_PASSWORD=pgsql-ticket-password
+      - POSTGRES_USER=pgsql-ticket-master
+    networks:
+      - backend
+    volumes:
+      - ./01-create-database-users.sql:/docker-entrypoint-initdb.d/01-create-database-users.sql
+      - ./02-create-database-sales.sql:/docker-entrypoint-initdb.d/02-create-database-sales.sql
+      - ./03-create-database-notifications.sql:/docker-entrypoint-initdb.d/03-create-database-notifications.sql
+      - ./pg_data:/var/lib/postgresql/data    
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "8123:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=web@ufop.edu.br
+      - PGADMIN_DEFAULT_PASSWORD=123456
+    networks:
+      - backend
+
+  sales-service:
+    build:
+      context: ../sales
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - DB_HOST=pgsql-ticket
+      - DB_PORT=5432
+      - DB_NAME=tickets-sales
+      - DB_USER=pg-tickets-sales
+      - DB_PASS=tickets-sales-password
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - backend
+    depends_on:
+      - pgsql-ticket
+
+  api-gateway:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SALES_SERVICE_URL=http://sales-service:4000
+      - USER_SERVICE_URL=http://user-service:4001
+    networks:
+      - backend
+    depends_on:
+      - sales-service
+      - user-service
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    networks:
+      - backend
+    depends_on:
+      - api-gateway
+
+  kafka:
+    image: apache/kafka:latest
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    networks:
+      - backend
+
+  payment-service:
+    build:
+      context: ../payment
+      dockerfile: Dockerfile
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SALES_SERVICE_URL=http://sales-service:4000
+    networks:
+      - backend
+    depends_on:
+      - kafka
+      - sales-service
+
+  user-service:
+    build:
+      context: ../users
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - DB_HOST=pgsql-ticket
+      - DB_PORT=5432
+      - DB_NAME=tickets-users
+      - DB_USER=pg-tickets-users
+      - DB_PASS=tickets-users-password
+    networks:
+      - backend
+    depends_on:
+      - pgsql-ticket
+
+networks:
+  backend:
+    driver: bridge

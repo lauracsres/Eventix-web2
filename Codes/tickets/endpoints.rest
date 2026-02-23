@@ -1,0 +1,74 @@
+@baseUrl = http://localhost:8080/api
+
+### Listar Usuários
+GET {{baseUrl}}/users
+
+### Criar Usuário
+# @name createUser
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "João Exemplo",
+  "email": "joao@exemplo.com"
+}
+
+### Buscar Usuário por ID
+GET {{baseUrl}}/users/{{createUser.response.body.id}}
+
+---
+
+### Listar Tipos de Eventos
+GET {{baseUrl}}/event-types
+
+### Criar Tipo de Evento
+# @name createType
+POST {{baseUrl}}/event-types
+Content-Type: application/json
+
+{
+  "name": "Concerto Musical"
+}
+
+---
+
+### Listar Eventos
+GET {{baseUrl}}/events
+
+### Criar Evento
+# @name createEvent
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "description": "Orquestra Filarmônica",
+  "eventTypeId": "{{createType.response.body.id}}",
+  "date": "2024-11-15T19:30:00",
+  "startSales": "2024-09-01T10:00:00",
+  "endSales": "2024-11-14T23:59:59",
+  "price": 120.0
+}
+
+---
+
+### Listar Vendas
+GET {{baseUrl}}/sales
+
+### Criar Venda
+# @name createSale
+POST {{baseUrl}}/sales
+Content-Type: application/json
+
+{
+  "userId": "{{createUser.response.body.id}}",
+  "eventId": "{{createEvent.response.body.id}}",
+  "saleStatus": "EM_ABERTO"
+}
+
+### Confirmar Pagamento
+PUT {{baseUrl}}/sales/{{createSale.response.body.id}}/status
+Content-Type: application/json
+
+{
+  "saleStatus": "PAGO"
+}

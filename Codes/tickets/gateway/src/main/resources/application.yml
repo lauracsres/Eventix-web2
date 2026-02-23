@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+      routes:
+        - id: sales-service
+          uri: ${SALES_SERVICE_URL:http://sales-service:4000}
+          predicates:
+            - Path=/api/events/**, /api/sales/**, /api/event-types/**
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://user-service:4001}
+          predicates:
+            - Path=/api/users/**
